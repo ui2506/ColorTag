@@ -29,7 +29,7 @@ namespace ColorTag.Commands
 
             if (arguments.Count < 1)
             {
-                response = "Usage: colortag set (colors)";
+                response = "Usage: colortag set (colors)\n" + Plugin.ShowColors();
                 return false;
             }
 
@@ -71,12 +71,12 @@ namespace ColorTag.Commands
 
             if (!PlayerPrefix.TryGetValue(player.UserId, out PlayerPrefix info))
             {
-                _ = PlayerPrefix.InsertPlayerAsync(player, colors);
+                PlayerPrefix.SetColors(player, colors);
             }
             else
             {
                 info.Colors = colors;
-                PlayerPrefix.PlayerInfoCollection.Update(info);
+                PlayerPrefix.Save(info);
             }
 
             PlayerPrefix.GiveCoroutine(player);

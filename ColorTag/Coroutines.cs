@@ -1,5 +1,6 @@
 ﻿using LabApi.Features.Wrappers;
 using MEC;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,24 +10,25 @@ namespace ColorTag
     {
         internal static IEnumerator<float> ChangeColor(Player player, IEnumerable<string> colors)
         {
-            string[] colorList = colors.ToArray();
+            yield return Timing.WaitForSeconds(0.1f);
 
-            if (colorList.Length <= 0)
+            if (!colors.Any())
                 yield break;
 
             int currentIndex = 0;
+            float interval = Math.Max(0.1f, Plugin.PluginConfig.Interval);
+            string[] colorList = colors.ToArray();
 
-            while (player.ReferenceHub != null)
+            while (!player.IsDestroyed)
             {
-                yield return Timing.WaitForSeconds(Plugin.PluginConfig.Interval);
-
                 if (currentIndex >= colorList.Length)
                     currentIndex = 0;
 
-                if (player != null && player.IsOnline)
-                    player.GroupColor = colorList[currentIndex];
+                player.GroupColor = colorList[currentIndex];
 
                 currentIndex++;
+
+                yield return Timing.WaitForSeconds(interval);
             }
 
             yield break;

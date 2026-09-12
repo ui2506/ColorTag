@@ -1,13 +1,13 @@
 ﻿using ColorTag.Configs;
-using ColorTag.EventHandlers;
-using LabApi.Features.Console;
 using LabApi.Features.Wrappers;
+using LabApi.Loader.Features.Paths;
 using LabApi.Loader.Features.Plugins;
 using LiteDB;
 using MEC;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ColorTag
 {
@@ -15,16 +15,13 @@ namespace ColorTag
     {
         public override string Name { get; } = "ColorTag";
         public override string Author { get; } = "ui_2506";
-        public override string Description { get; } = "ColorTag";
+        public override string Description { get; } = "Animated player tag colors";
         public override Version Version { get; } = new Version(2, 2, 0);
         public override Version RequiredApiVersion { get; } = new Version(1, 1, 7);
 
-        private string MainDirectory;
-        private string ConfigDirectory;
-
         internal static readonly Dictionary<Player, CoroutineHandle> PlayerCoroutines = new Dictionary<Player, CoroutineHandle>();
 
-        internal static readonly Dictionary<string, string> AvailableColors = new Dictionary<string, string>() 
+        internal static readonly Dictionary<string, string> AvailableColors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "pink", "#FF96DE" },
             { "red", "#C50000" },
@@ -50,71 +47,34 @@ namespace ColorTag
             { "pumpkin", "#EE7600" }
         };
 
+        private static readonly string AvailableColorsText = "Available colors: " + string.Join(", ", AvailableColors.Select(color => $"<color={color.Value}>{color.Key}</color>"));
+
         internal static Config PluginConfig { get; private set; }
         internal static LiteDatabase Data { get; private set; }
 
         public override void Enable()
         {
-            ReloadFiles();
-
             PluginConfig = Config;
-            Data = new LiteDatabase($"{ConfigDirectory}/ColorSetting{Server.Port}.db");
 
-            PlayerEvents.Register();
+            string directory = Path.Combine(PathManager.Configs.FullName, "DataBase", "ColorTag");
+
+            Directory.CreateDirectory(directory);
+
+            Data = new LiteDatabase(Path.Combine(directory, $"ColorSetting{Server.Port}.db"));
+
+            PlayerPrefix.Initialize();
+            EventHandlers.Register();
         }
 
         public override void Disable()
         {
-            Data.Dispose();
-            PlayerEvents.Unregister();
+            EventHandlers.Unregister();
+            Data?.Dispose();
 
-            PluginConfig = null;
             Data = null;
+            PluginConfig = null;
         }
 
-        internal void ReloadFiles()
-        {
-            MainDirectory = GetParentDirectory() + "/configs" + "/DataBase";
-            ConfigDirectory = MainDirectory + "/ColorTag";
-
-            if (!Directory.Exists(MainDirectory))
-            {
-                Directory.CreateDirectory(MainDirectory);
-                Logger.Warn("DataBase directory not found! Creating...");
-            }
-
-            if (!Directory.Exists(ConfigDirectory))
-            {
-                Directory.CreateDirectory(ConfigDirectory);
-                Logger.Warn("ColorTag directory not found! Creating...");
-            }
-        }
-
-        private string GetParentDirectory()
-        {
-            string parentPath = Path.GetDirectoryName(FilePath);
-
-            for (int i = 0; i < 2; i++)
-            {
-                parentPath = Directory.GetParent(parentPath)?.FullName;
-
-                if (parentPath == null)
-                    throw new InvalidOperationException("It is impossible to go higher than the root directory.");
-            }
-
-            return parentPath;
-        }
-
-        internal static string ShowColors()
-        {
-            string content = string.Empty;
-
-            foreach (var colors in AvailableColors)
-            {
-                content += $"<color={colors.Value}>{colors.Key}</color>" + "," + " ";
-            }
-
-            return $"Aviable colors: {content}";
-        }
+        internal static string ShowColors() => AvailableColorsText;
     }
 }

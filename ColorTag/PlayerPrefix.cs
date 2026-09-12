@@ -2,7 +2,6 @@
 using LiteDB;
 using MEC;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ColorTag
 {
@@ -12,17 +11,17 @@ namespace ColorTag
         public string UserId { get; set; }
         public List<string> Colors { get; set; }
 
-        internal static ILiteCollection<PlayerPrefix> PlayerInfoCollection => Plugin.Data.GetCollection<PlayerPrefix>($"ColorSetting{Server.Port}");
+        private static ILiteCollection<PlayerPrefix> PlayerInfoCollection;
 
-        internal static async Task InsertPlayerAsync(Player player, List<string> colors)
+        internal static void Initialize() => PlayerInfoCollection = Plugin.Data.GetCollection<PlayerPrefix>($"ColorSetting{Server.Port}");
+
+        internal static void SetColors(Player player, IEnumerable<string> colors)
         {
-            PlayerPrefix insert = new PlayerPrefix()
+            PlayerInfoCollection.Upsert(new PlayerPrefix
             {
                 UserId = player.UserId,
-                Colors = new List<string>() { player.GroupColor }
-            };
-
-            _ = PlayerInfoCollection.Insert(insert);
+                Colors = new List<string>(colors)
+            });
         }
 
         internal static bool TryGetValue(string userId, out PlayerPrefix info)
@@ -31,28 +30,43 @@ namespace ColorTag
             return info != null;
         }
 
-        internal static bool Contains(string userId) => PlayerInfoCollection.FindById(userId) != null;
-
-        internal static void DeletePlayer(string userId)
+        internal static void Save(PlayerPrefix info)
         {
-            if (Contains(userId))
-                PlayerInfoCollection.Delete(userId);
+            if (info.Colors == null)
+                info.Colors = new List<string>();
+
+            PlayerInfoCollection.Upsert(info);
         }
+
+        internal static bool DeletePlayer(string userId) => PlayerInfoCollection.Delete(userId);
 
         internal static void DeleteAll() => PlayerInfoCollection.DeleteAll();
 
         internal static void GiveCoroutine(Player player)
         {
-            if (player.UserGroup == null || player.GroupColor == null)
+            if (string.IsNullOrEmpty(player.UserId) || string.IsNullOrEmpty(player.GroupColor) || player.UserGroup == null)
                 return;
 
-            if (!PlayerPrefix.TryGetValue(player.UserId, out PlayerPrefix info))
+            if (!TryGetValue(player.UserId, out PlayerPrefix info))
                 return;
 
-            if (Plugin.PlayerCoroutines.TryGetValue(player, out CoroutineHandle coroutine))
-                Timing.KillCoroutines(coroutine);
+            StopCoroutine(player);
 
             Plugin.PlayerCoroutines[player] = Timing.RunCoroutine(Coroutines.ChangeColor(player, info.Colors));
+        }
+
+        internal static void StopCoroutine(Player player)
+        {
+            if (Plugin.PlayerCoroutines.TryGetValue(player, out CoroutineHandle coroutine))
+                Timing.KillCoroutines(coroutine);
+        }
+
+        internal static void StopAllCoroutines()
+        {
+            foreach (CoroutineHandle coroutine in Plugin.PlayerCoroutines.Values)
+                Timing.KillCoroutines(coroutine);
+
+            Plugin.PlayerCoroutines.Clear();
         }
     }
 }

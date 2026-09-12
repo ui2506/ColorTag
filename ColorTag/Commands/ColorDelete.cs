@@ -3,7 +3,6 @@ using LabApi.Features.Permissions;
 using LabApi.Features.Wrappers;
 using RemoteAdmin;
 using System;
-using static ColorTag.Data;
 
 namespace ColorTag.Commands
 {

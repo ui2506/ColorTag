@@ -35,7 +35,7 @@ namespace ColorTag.Commands
             if (!Plugin.PluginConfig.GroupColorLimit.TryGetValue(player.UserGroup.Name, out int limit))
                 limit = Plugin.PluginConfig.DefaultColorLimit;
 
-            if (arguments.Count > limit)
+            if (arguments.Count + info.Colors.Count > limit)
             {
                 response = Plugin.PluginConfig.Translation.ColorLimit
                     .Replace("%limit%", limit.ToString());
@@ -68,8 +68,7 @@ namespace ColorTag.Commands
 
             info.Colors = alreadyUsedColors;
 
-            PlayerPrefix.PlayerInfoCollection.Update(info);
-
+            PlayerPrefix.Save(info);
             PlayerPrefix.GiveCoroutine(player);
 
             response = Plugin.PluginConfig.Translation.Successfull

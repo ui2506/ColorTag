@@ -50,8 +50,7 @@ namespace ColorTag.Commands
 
             info.Colors = alreadyUsedColorsinforemove;
 
-            PlayerPrefix.PlayerInfoCollection.Update(info);
-
+            PlayerPrefix.Save(info);
             PlayerPrefix.GiveCoroutine(player);
 
             response = Plugin.PluginConfig.Translation.Successfull
