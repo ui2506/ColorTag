@@ -4,7 +4,7 @@ using System;
 namespace ColorTag.Commands
 {
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
-    internal class Parent : ParentCommand
+    internal sealed class Parent : ParentCommand
     {
         public Parent() => LoadGeneratedCommands();
 

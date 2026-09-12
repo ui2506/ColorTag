@@ -7,7 +7,7 @@ using static ColorTag.Data;
 
 namespace ColorTag.Commands
 {
-    internal class ColorDelete : ICommand
+    internal sealed class ColorDelete : ICommand
     {
         public string Command { get; } = "delete";
         public string[] Aliases { get; } = { "del" };
@@ -19,10 +19,10 @@ namespace ColorTag.Commands
                 ? Player.Get(playerCommandSender)
                 : Server.Host;
 
-            if (!player.HasPermissions(Plugin.config.AdminRequirePermission))
+            if (!player.HasPermissions(Plugin.PluginConfig.AdminRequirePermission))
             {
-                response = Plugin.config.Translation.DontHavePermissions
-                    .Replace("%permission%", Plugin.config.AdminRequirePermission);
+                response = Plugin.PluginConfig.Translation.DontHavePermissions
+                    .Replace("%permission%", Plugin.PluginConfig.AdminRequirePermission);
                 return false;
             }
 
@@ -35,28 +35,28 @@ namespace ColorTag.Commands
             switch (arguments.At(0))
             {
                 case "all":
-                    if (!player.HasPermissions(Plugin.config.DropDataRequirePermission))
+                    if (!player.HasPermissions(Plugin.PluginConfig.DropDataRequirePermission))
                     {
-                        response = Plugin.config.Translation.DontHavePermissions
-                            .Replace("%permission%", Plugin.config.DropDataRequirePermission);
+                        response = Plugin.PluginConfig.Translation.DontHavePermissions
+                            .Replace("%permission%", Plugin.PluginConfig.DropDataRequirePermission);
                         return false;
                     }
 
-                    Extensions.DeleteAll();
+                    PlayerPrefix.DeleteAll();
 
-                    response = Plugin.config.Translation.KillDataBase;
+                    response = Plugin.PluginConfig.Translation.KillDataBase;
                     return true;
 
                 default:
-                    if (!Extensions.TryGetValue(arguments.At(0), out PlayerInfo info))
+                    if (!PlayerPrefix.TryGetValue(arguments.At(0), out PlayerPrefix info))
                     {
-                        response = Plugin.config.Translation.OtherNotFound;
+                        response = Plugin.PluginConfig.Translation.OtherNotFound;
                         return false;
                     }
 
-                    Extensions.DeletePlayer(arguments.At(0));
+                    PlayerPrefix.DeletePlayer(arguments.At(0));
 
-                    response = Plugin.config.Translation.SuccessfullDeleted
+                    response = Plugin.PluginConfig.Translation.SuccessfullDeleted
                         .Replace("%userid%", arguments.At(0));
                     return true;
             }

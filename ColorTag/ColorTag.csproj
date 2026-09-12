@@ -91,9 +91,8 @@
     <Compile Include="Configs\Config.cs" />
     <Compile Include="Configs\Translation.cs" />
     <Compile Include="Coroutines.cs" />
-    <Compile Include="Data.cs" />
     <Compile Include="EventHandlers\PlayerEvents.cs" />
-    <Compile Include="Extensions.cs" />
+    <Compile Include="PlayerPrefix.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

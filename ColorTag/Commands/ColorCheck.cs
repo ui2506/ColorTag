@@ -3,11 +3,10 @@ using LabApi.Features.Permissions;
 using LabApi.Features.Wrappers;
 using RemoteAdmin;
 using System;
-using static ColorTag.Data;
 
 namespace ColorTag.Commands
 {
-    public class ColorCheck : ICommand
+    internal sealed class ColorCheck : ICommand
     {
         public string Command { get; } = "check";
         public string[] Aliases { get; } = { };
@@ -19,22 +18,22 @@ namespace ColorTag.Commands
                 ? Player.Get(playerCommandSender)
                 : Server.Host;
 
-            if (!player.HasPermissions(Plugin.config.AdminRequirePermission))
+            if (!player.HasPermissions(Plugin.PluginConfig.AdminRequirePermission))
             {
-                response = Plugin.config.Translation.DontHavePermissions
-                    .Replace("%permission%", Plugin.config.AdminRequirePermission);
+                response = Plugin.PluginConfig.Translation.DontHavePermissions
+                    .Replace("%permission%", Plugin.PluginConfig.AdminRequirePermission);
                 return false;
             }
 
-            if (arguments.Count != 1)
+            if (arguments.Count < 1)
             {
                 response = "Using: colortag check (UserID)";
                 return false;
             }
 
-            if (!Extensions.TryGetValue(arguments.At(0), out PlayerInfo info))
+            if (!PlayerPrefix.TryGetValue(arguments.At(0), out PlayerPrefix info))
             {
-                response = Plugin.config.Translation.OtherNotFound;
+                response = Plugin.PluginConfig.Translation.OtherNotFound;
                 return false;
             }
 

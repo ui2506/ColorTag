@@ -3,11 +3,10 @@ using LabApi.Features.Wrappers;
 using RemoteAdmin;
 using System;
 using System.Collections.Generic;
-using static ColorTag.Data;
 
 namespace ColorTag.Commands
 {
-    internal class ColorRemove : ICommand
+    internal sealed class ColorRemove : ICommand
     {
         public string Command { get; } = "remove";
         public string[] Aliases { get; } = { };
@@ -19,9 +18,9 @@ namespace ColorTag.Commands
                 ? Player.Get(playerCommandSender)
                 : Server.Host;
 
-            if (!Extensions.TryGetValue(player.UserId, out PlayerInfo info))
+            if (!PlayerPrefix.TryGetValue(player.UserId, out PlayerPrefix info))
             {
-                response = Plugin.config.Translation.NotFoundInDataBase;
+                response = Plugin.PluginConfig.Translation.NotFoundInDataBase;
                 return false;
             }
 
@@ -34,7 +33,7 @@ namespace ColorTag.Commands
             {
                 if (!Plugin.AvailableColors.ContainsKey(arg))
                 {
-                    response = Plugin.config.Translation.InvalidColor
+                    response = Plugin.PluginConfig.Translation.InvalidColor
                         .Replace("%arg%", arg)
                         .Replace("%colors%", Plugin.ShowColors());
                     return false;
@@ -51,11 +50,11 @@ namespace ColorTag.Commands
 
             info.Colors = alreadyUsedColorsinforemove;
 
-            Extensions.PlayerInfoCollection.Update(info);
+            PlayerPrefix.PlayerInfoCollection.Update(info);
 
-            player.GiveCoroutine();
+            PlayerPrefix.GiveCoroutine(player);
 
-            response = Plugin.config.Translation.Successfull
+            response = Plugin.PluginConfig.Translation.Successfull
                 .Replace("%current%", text);
             return true;
         }

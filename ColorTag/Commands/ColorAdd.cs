@@ -4,11 +4,10 @@ using LabApi.Features.Wrappers;
 using RemoteAdmin;
 using System;
 using System.Collections.Generic;
-using static ColorTag.Data;
 
 namespace ColorTag.Commands
 {
-    internal class ColorAdd : ICommand
+    internal sealed class ColorAdd : ICommand
     {
         public string Command { get; } = "add";
         public string[] Aliases { get; } = { };
@@ -20,25 +19,25 @@ namespace ColorTag.Commands
                 ? Player.Get(playerCommandSender) 
                 : Server.Host;
 
-            if (!player.HasPermissions(Plugin.config.ColorRequirePermission))
+            if (!player.HasPermissions(Plugin.PluginConfig.ColorRequirePermission))
             {
-                response = Plugin.config.Translation.DontHavePermissions
-                    .Replace("%permission%", Plugin.config.ColorRequirePermission);
+                response = Plugin.PluginConfig.Translation.DontHavePermissions
+                    .Replace("%permission%", Plugin.PluginConfig.ColorRequirePermission);
                 return false;
             }
 
-            if (!Extensions.TryGetValue(player.UserId, out PlayerInfo info))
+            if (!PlayerPrefix.TryGetValue(player.UserId, out PlayerPrefix info))
             {
-                response = Plugin.config.Translation.NotFoundInDataBase;
+                response = Plugin.PluginConfig.Translation.NotFoundInDataBase;
                 return false;
             }
 
-            if (!Plugin.config.GroupColorLimit.TryGetValue(player.UserGroup.Name, out int limit))
-                limit = Plugin.config.DefaultColorLimit;
+            if (!Plugin.PluginConfig.GroupColorLimit.TryGetValue(player.UserGroup.Name, out int limit))
+                limit = Plugin.PluginConfig.DefaultColorLimit;
 
             if (arguments.Count > limit)
             {
-                response = Plugin.config.Translation.ColorLimit
+                response = Plugin.PluginConfig.Translation.ColorLimit
                     .Replace("%limit%", limit.ToString());
                 return false;
             }
@@ -52,7 +51,7 @@ namespace ColorTag.Commands
             {
                 if (!Plugin.AvailableColors.ContainsKey(arg))
                 {
-                    response = Plugin.config.Translation.InvalidColor
+                    response = Plugin.PluginConfig.Translation.InvalidColor
                         .Replace("%arg%", arg)
                         .Replace("%colors%", Plugin.ShowColors());
                     return false;
@@ -69,11 +68,11 @@ namespace ColorTag.Commands
 
             info.Colors = alreadyUsedColors;
 
-            Extensions.PlayerInfoCollection.Update(info);
+            PlayerPrefix.PlayerInfoCollection.Update(info);
 
-            player.GiveCoroutine();
+            PlayerPrefix.GiveCoroutine(player);
 
-            response = Plugin.config.Translation.Successfull
+            response = Plugin.PluginConfig.Translation.Successfull
                 .Replace("%current%", text);
             return true;
         }

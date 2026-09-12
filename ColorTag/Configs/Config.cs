@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace ColorTag.Configs
 {
-    public class Config
+    public sealed class Config
     {
         [Description("Rights so that the player can change his colors")]
         public string ColorRequirePermission { get; set; } = "colortag.get";

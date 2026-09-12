@@ -1,38 +1,34 @@
-﻿using LabApi.Events.Arguments.PlayerEvents;
-using LabApi.Features.Console;
+﻿using LabApi.Events.Arguments.Interfaces;
+using LabApi.Events.Arguments.PlayerEvents;
 using MEC;
 
 namespace ColorTag.EventHandlers
 {
-    internal class PlayerEvents
+    internal static class PlayerEvents
     {
-        internal void Register()
+        internal static void Register()
         {
-            LabApi.Events.Handlers.PlayerEvents.Joined += OnJoined;
-            LabApi.Events.Handlers.PlayerEvents.GroupChanged += OnGroupChanged;
+            LabApi.Events.Handlers.PlayerEvents.Joined += TryGiveCoroutinve;
+            LabApi.Events.Handlers.PlayerEvents.GroupChanged += TryGiveCoroutinve;
             LabApi.Events.Handlers.PlayerEvents.Left += OnLeft;
         }
 
-        internal void Unregister()
+        internal static void Unregister()
         {
-            LabApi.Events.Handlers.PlayerEvents.Joined -= OnJoined;
-            LabApi.Events.Handlers.PlayerEvents.GroupChanged -= OnGroupChanged;
+            LabApi.Events.Handlers.PlayerEvents.Joined -= TryGiveCoroutinve;
+            LabApi.Events.Handlers.PlayerEvents.GroupChanged -= TryGiveCoroutinve;
             LabApi.Events.Handlers.PlayerEvents.Left += OnLeft;
         }
 
-        private void OnLeft(PlayerLeftEventArgs ev)
+        private static void OnLeft(PlayerLeftEventArgs ev)
         {
-            if (!Plugin.PlayerCoroutines.TryGetValue(ev.Player, out CoroutineHandle coroutine))
+            if (ev.Player != null || !Plugin.PlayerCoroutines.TryGetValue(ev.Player, out CoroutineHandle coroutine))
                 return;
 
-            if (coroutine.IsRunning)
-                Timing.KillCoroutines(coroutine);
-
+            Timing.KillCoroutines(coroutine);
             Plugin.PlayerCoroutines.Remove(ev.Player);
         }
 
-        private void OnJoined(PlayerJoinedEventArgs ev) => ev.Player.GiveCoroutine();
-
-        private void OnGroupChanged(PlayerGroupChangedEventArgs ev) => ev.Player.GiveCoroutine();
+        private static void TryGiveCoroutinve<T>(T ev) where T : IPlayerEvent => PlayerPrefix.GiveCoroutine(ev.Player);
     }
 }

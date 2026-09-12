@@ -1,6 +1,6 @@
 ﻿namespace ColorTag.Configs
 {
-    public class Translation
+    public sealed class Translation
     {
         public string DontHavePermissions { get; set; } = "You dont have permissions %permission%";
         public string NotFoundInDataBase { get; set; } = "Your settings were not found, please use the (colortag set (colors)) command";

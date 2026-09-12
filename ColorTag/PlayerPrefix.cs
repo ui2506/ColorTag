@@ -3,26 +3,29 @@ using LiteDB;
 using MEC;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static ColorTag.Data;
 
 namespace ColorTag
 {
-    internal static class Extensions
+    internal sealed class PlayerPrefix
     {
-        internal static ILiteCollection<PlayerInfo> PlayerInfoCollection => Plugin.database.GetCollection<PlayerInfo>($"ColorSetting{Server.Port}");
+        [BsonId]
+        public string UserId { get; set; }
+        public List<string> Colors { get; set; }
+
+        internal static ILiteCollection<PlayerPrefix> PlayerInfoCollection => Plugin.Data.GetCollection<PlayerPrefix>($"ColorSetting{Server.Port}");
 
         internal static async Task InsertPlayerAsync(Player player, List<string> colors)
         {
-            PlayerInfo insert = new PlayerInfo()
+            PlayerPrefix insert = new PlayerPrefix()
             {
                 UserId = player.UserId,
                 Colors = new List<string>() { player.GroupColor }
             };
 
-            await Task.Run(() => PlayerInfoCollection.Insert(insert));
+            _ = PlayerInfoCollection.Insert(insert);
         }
 
-        internal static bool TryGetValue(string userId, out PlayerInfo info)
+        internal static bool TryGetValue(string userId, out PlayerPrefix info)
         {
             info = PlayerInfoCollection.FindById(userId);
             return info != null;
@@ -38,18 +41,15 @@ namespace ColorTag
 
         internal static void DeleteAll() => PlayerInfoCollection.DeleteAll();
 
-        internal static void GiveCoroutine(this Player player)
+        internal static void GiveCoroutine(Player player)
         {
-            if (player == null || string.IsNullOrEmpty(player.UserId))
-                return;
-
             if (player.UserGroup == null || player.GroupColor == null)
                 return;
 
-            if (!TryGetValue(player.UserId, out PlayerInfo info))
+            if (!PlayerPrefix.TryGetValue(player.UserId, out PlayerPrefix info))
                 return;
 
-            if (Plugin.PlayerCoroutines.TryGetValue(player, out CoroutineHandle coroutine) && coroutine.IsRunning)
+            if (Plugin.PlayerCoroutines.TryGetValue(player, out CoroutineHandle coroutine))
                 Timing.KillCoroutines(coroutine);
 
             Plugin.PlayerCoroutines[player] = Timing.RunCoroutine(Coroutines.ChangeColor(player, info.Colors));

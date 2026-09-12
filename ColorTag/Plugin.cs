@@ -11,13 +11,13 @@ using System.IO;
 
 namespace ColorTag
 {
-    public class Plugin : Plugin<Config>
+    public sealed class Plugin : Plugin<Config>
     {
-        public override string Name => "ColorTag";
-        public override string Author => "angelseraphim.";
-        public override string Description => "ColorTag";
-        public override Version Version => new Version(2, 1, 1);
-        public override Version RequiredApiVersion => new Version(1, 0, 2);
+        public override string Name { get; } = "ColorTag";
+        public override string Author { get; } = "ui_2506";
+        public override string Description { get; } = "ColorTag";
+        public override Version Version { get; } = new Version(2, 2, 0);
+        public override Version RequiredApiVersion { get; } = new Version(1, 1, 7);
 
         private string MainDirectory;
         private string ConfigDirectory;
@@ -50,30 +50,26 @@ namespace ColorTag
             { "pumpkin", "#EE7600" }
         };
 
-        internal static Config config;
-        internal static LiteDatabase database;
-
-        private PlayerEvents playerEvents;
+        internal static Config PluginConfig { get; private set; }
+        internal static LiteDatabase Data { get; private set; }
 
         public override void Enable()
         {
             ReloadFiles();
 
-            config = Config;
-            database = new LiteDatabase($"{ConfigDirectory}/ColorSetting{Server.Port}.db");
-            playerEvents = new PlayerEvents();
+            PluginConfig = Config;
+            Data = new LiteDatabase($"{ConfigDirectory}/ColorSetting{Server.Port}.db");
 
-            playerEvents.Register();
+            PlayerEvents.Register();
         }
 
         public override void Disable()
         {
-            database.Dispose();
-            playerEvents.Unregister();
+            Data.Dispose();
+            PlayerEvents.Unregister();
 
-            config = null;
-            database = null;
-            playerEvents = null;
+            PluginConfig = null;
+            Data = null;
         }
 
         internal void ReloadFiles()
